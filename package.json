@@ -1,7 +1,7 @@
 {
   "name": "pull-fs",
-  "description": "",
-  "version": "0.0.0",
+  "description": "pull-stream fs, etc",
+  "version": "1.0.0",
   "homepage": "https://github.com/dominictarr/pull-fs",
   "repository": {
     "type": "git",
