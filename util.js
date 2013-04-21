@@ -50,7 +50,7 @@ var star =
 exports.star = 
 function (match) {
   return pull.map(function (dir) {
-    return readdir(dir)
+    return core.readdir(dir)
   })
   .pipe(pull.flatten())
   .pipe(pull.filter(match))
