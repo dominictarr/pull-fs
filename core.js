@@ -5,8 +5,14 @@ var split = require('pull-split')
 
 var readdir =
 exports.readdir =
-pull.Source(function (dir) {
+pull.Source(function (dir, match) {
   var ls, ended = false
+  match = (
+    !match                           ? null
+  : 'function' === typeof match      ? match
+  : 'function' === typeof match.test ? match.test.bind(match)
+  :                                    null
+  )
   return function (abort, cb) {
     if(ended || abort) {
       cb(ended = ended || abort)
@@ -16,10 +22,15 @@ pull.Source(function (dir) {
         if(err)             cb(ended = err)
         else if(!_ls.length) cb(ended = true)
         else {
+          if(match)
+            _ls = _ls.filter(match)
           ls = _ls.map(function (f) {
             return path.resolve(dir, f)
           })
-          cb(null, ls.shift())
+          if(ls.length)
+            cb(null, ls.shift())
+          else
+            cb(true)
         }
       })
     else if(!ls.length) cb(ended = true)
@@ -78,16 +89,25 @@ pull.Source(function (path, options) {
   }
 })
 
+var exists =
+exports.exists =
+function (test) {
+  test = test || function (e) {
+    return !!e
+  }
+  return pull.asyncMap(function (e, cb) {
+    fs.stat(e, function (err, stat) {
+      if(stat && test(stat))
+        cb(null, e)
+      else
+        cb(null, null)
+    })
+  }).pipe(pull.filter(Boolean))
+}
+
 function testStat(test) {
   return function () {
-    return pull.asyncMap(function (e, cb) {
-      fs.stat(e, function (err, stat) {
-        if(stat && test(stat))
-          cb(null, e)
-        else
-          cb(null, null)
-      })
-    }).pipe(pull.filter())
+    return exists(test)
   }
 }
 
@@ -119,5 +139,3 @@ testStat(function (e) { return e.isFIFO() })
 var isSocket = 
 exports.isSocket =
 testStat(function (e) { return e.isSocket() })
-
-
