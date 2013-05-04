@@ -2,6 +2,7 @@ var path = require('path')
 var pull = require('pull-stream')
 var split = require('pull-split')
 var core  = require('./core')
+var fs    = require('fs')
 
 var ancestors = 
 exports.ancestors = 
@@ -50,18 +51,66 @@ var star =
 exports.star = 
 function (match) {
   return pull.map(function (dir) {
-    return core.readdir(dir)
+    return core.readdir(dir, match)
   })
   .pipe(pull.flatten())
-  .pipe(pull.filter(match))
+  .pipe(pull.filter())
+}
+
+var starStar = 
+exports.starStar =
+function (match) {
+  var seen = {}
+  return pull.map(function (dir) {
+    return pull.depthFirst(dir, function (_dir) {
+      return core.readdir(_dir, match)
+      .pipe(pull.filter(function (e) {
+        if(seen[e]) return false
+        return seen[e] = true
+      }))
+    })
+  })
+  .pipe(pull.flatten())
+  .pipe(pull.filter())
 }
 
 var resolve = 
 exports.resolve = 
 function (rel) {
  return pull.map(function (dir) { //map to $dir/node_modules
-    return path.resolve(dir, rel)
+    if(rel)
+      return path.resolve(dir, rel)
+    return path.resolve(dir)
   })
 }
 
+var relative = 
+exports.relative =
+function (rel) {
+  rel = rel || process.cwd()
+  return pull.map(function (file) {
+    return path.relative(rel, file)
+  })
+}
+
+var absolute =
+exports.absolute =
+function () {
+  return resolve()
+}
+
+var read =
+exports.read = function (parse) {
+  return pull.asyncMap(function (file, cb) {
+    fs.readFile(file, 'utf-8', function (err, data) {
+      if(err) return cb(err) 
+      try {
+         data = parse ? parse(data) : data
+      } catch (err) {
+        return cb(err)
+      }
+      return cb(null, data)
+    })
+  })
+}
 
