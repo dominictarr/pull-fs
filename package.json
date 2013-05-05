@@ -8,7 +8,7 @@
     "url": "git://github.com/dominictarr/pull-fs.git"
   },
   "dependencies": {
-    "pull-stream": "~2.14.1",
+    "pull-stream": "~2.16",
     "pull-split": "~0.1.0"
   },
   "devDependencies": {},
