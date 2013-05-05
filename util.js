@@ -63,15 +63,13 @@ function (match) {
   var seen = {}
   return pull.map(function (dir) {
     var first = true
-    return pull.depthFirst(dir, function (_dir) {
+    return pull.depthFirst(path.resolve(dir), function (_dir) {
       return core.readdir(_dir, match)
       .pipe(pull.filter(function (e) {
         if(seen[e]) return false
         return seen[e] = true
       }))
     })
-    //make sure that the starting dir is in the stream!
-    .pipe(pull.prepend(path.resolve(dir)))
 
   })
   .pipe(pull.flatten())
