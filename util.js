@@ -57,11 +57,12 @@ function (match) {
   .pipe(pull.filter())
 }
 
-var starStar = 
+var starStar =
 exports.starStar =
 function (match) {
   var seen = {}
   return pull.map(function (dir) {
+    var first = true
     return pull.depthFirst(dir, function (_dir) {
       return core.readdir(_dir, match)
       .pipe(pull.filter(function (e) {
@@ -69,6 +70,9 @@ function (match) {
         return seen[e] = true
       }))
     })
+    //make sure that the starting dir is in the stream!
+    .pipe(pull.prepend(path.resolve(dir)))
+
   })
   .pipe(pull.flatten())
   .pipe(pull.filter())
@@ -114,3 +118,8 @@ exports.read = function (parse) {
   })
 }
 
+if(!module.parent) {
+  pull.values(['.'])
+  .pipe(starStar())
+  .pipe(pull.drain(console.log))
+}
