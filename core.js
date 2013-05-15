@@ -44,6 +44,8 @@ var read =
 exports.read =
 pull.Source(function (path, options) {
 
+  console.log('read...')
+
   //C/P from
   // https://github.com/joyent/node/blob/master/lib/fs.js#L172-L202
   /*
@@ -63,7 +65,6 @@ pull.Source(function (path, options) {
   var encoding = options.encoding;
 
   var fd, _cb, read, ended
-
   var flag = options.flag || 'r';
   fs.open(path, flag, 438 /*=0666*/, function(er, fd_) {
     if (er) {
@@ -75,9 +76,11 @@ pull.Source(function (path, options) {
     var buffer = new Buffer(blocksize)
     read = function (abort, cb) {
       fs.read(fd, buffer, 0, blocksize, -1, function (err, bytes, buffer) {
+
         if(err)         return cb(ended = err)
         if(bytes === 0) return cb(true)
-        cb(null, buffer.slice(0, bytes))
+        var b = buffer.slice(0, bytes)
+        cb(null, encoding ? b.toString(encoding) : b)
       })
     }
     read(null, _cb)
@@ -88,6 +91,37 @@ pull.Source(function (path, options) {
     else read(abort, cb)
   }
 })
+
+//var write =
+//exports.write = 
+//pull.Sink(function (read, path, options, done) {
+//
+//  if(!done)
+//    done = function () {}
+//  
+//  if (typeof options === 'function' || !options) {
+//    options = { encoding: null, flag: 'w' };
+//  } else if (typeof options === 'string') {
+//    options = { encoding: options, flag: 'w' };
+//  } else if (!options) {
+//    options = { encoding: null, flag: 'w' };
+//  } else if (typeof options !== 'object') {
+//    throw new TypeError('Bad arguments');
+//  }
+//
+//  var fd, _cb, read, ended
+//  var flag = options.flag || 'r';
+//  fs.open(path, flag, 438 /*=0666*/, function(er, fd_) {
+//    if(er) {
+//      return read(er, function () {
+//        return done(er)
+//      })
+//    }
+//    read(null, function next (err, data) {
+//
+//    })
+//  })
+//})
 
 var exists =
 exports.exists =

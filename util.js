@@ -101,8 +101,8 @@ function () {
   return resolve()
 }
 
-var read =
-exports.read = function (parse) {
+var readFile =
+exports.readFile = function (parse) {
   return pull.asyncMap(function (file, cb) {
     fs.readFile(file, 'utf-8', function (err, data) {
       if(err) return cb(err) 
