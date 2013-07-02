@@ -44,8 +44,6 @@ var read =
 exports.read =
 pull.Source(function (path, options) {
 
-  console.log('read...')
-
   //C/P from
   // https://github.com/joyent/node/blob/master/lib/fs.js#L172-L202
   /*
