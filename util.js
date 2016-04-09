@@ -1,13 +1,10 @@
 var path = require('path')
 var pull = require('pull-stream')
-//var split = require('pull-split')
 var core  = require('./core')
 var fs    = require('fs')
 var DepthFirst = require('pull-traverse').depthFirst
 
-var ancestors = 
-exports.ancestors = 
-function (dir) {
+var ancestors = exports.ancestors = function (dir) {
   dir = dir || process.cwd()
   var paths = []
 
@@ -23,39 +20,14 @@ function (dir) {
   return pull.values(paths)
 }
 
-
-//var wc = 
-//exports.wc = 
-//function () {
-//  return pull.asyncMap(function (file, cb) {
-//    var data = {lines: 0, chars:0, words: 0, file: file}
-//
-//    core.read(file)
-//    .pipe(split())
-//    .pipe(pull.reduce(function (total, line) {
-//      total.lines ++
-//      total.chars += line.length + 1 //+1 for new line
-//      //note, splitting, since it creates an array,
-//      //will not be the most optimal method.
-//      total.words +=
-//        line.split(/\s+/)
-//        .reduce(function (s, i) {
-//          return s + (i ? 1 : 0)
-//        }, 0)
-//
-//      return total
-//    }, data, cb))
-//  })
-//}
-//
-var star =
-exports.star = 
-function (match) {
-  return pull.map(function (dir) {
-    return core.readdir(dir, match)
-  })
-  .pipe(pull.flatten())
-  .pipe(pull.filter())
+var star = exports.star = function (match) {
+  return pull(
+    pull.map(function (dir) {
+      return core.readdir(dir, match)
+    }),
+    pull.flatten(),
+    pull.filter()
+  )
 }
 
 var starStar =
@@ -122,4 +94,5 @@ if(!module.parent) {
     pull.drain(console.log)
   )
 }
+
 

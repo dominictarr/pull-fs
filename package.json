@@ -8,11 +8,13 @@
     "url": "git://github.com/dominictarr/pull-fs.git"
   },
   "dependencies": {
-    "pull-stream": "~2.20",
-    "pull-split": "~0.1.1"
+    "pull-file": "^0.5.0",
+    "pull-stream": "^3.3.0",
+    "pull-traverse": "^1.0.3",
+    "pull-write-file": "^0.2.1"
   },
   "devDependencies": {
-    "tape": "~1.0.2"
+    "tape": "^4.5.1"
   },
   "scripts": {
     "test": "set -e; for t in test/*.js; do node $t; done"
@@ -20,3 +22,4 @@
   "author": "Dominic Tarr <dominic.tarr@gmail.com> (http://dominictarr.com)",
   "license": "MIT"
 }
+
