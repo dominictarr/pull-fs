@@ -1,8 +1,9 @@
 var path = require('path')
 var pull = require('pull-stream')
-var split = require('pull-split')
+//var split = require('pull-split')
 var core  = require('./core')
 var fs    = require('fs')
+var DepthFirst = require('pull-traverse').depthFirst
 
 var ancestors = 
 exports.ancestors = 
@@ -23,30 +24,30 @@ function (dir) {
 }
 
 
-var wc = 
-exports.wc = 
-function () {
-  return pull.asyncMap(function (file, cb) {
-    var data = {lines: 0, chars:0, words: 0, file: file}
-
-    core.read(file)
-    .pipe(split())
-    .pipe(pull.reduce(function (total, line) {
-      total.lines ++
-      total.chars += line.length + 1 //+1 for new line
-      //note, splitting, since it creates an array,
-      //will not be the most optimal method.
-      total.words +=
-        line.split(/\s+/)
-        .reduce(function (s, i) {
-          return s + (i ? 1 : 0)
-        }, 0)
-
-      return total
-    }, data, cb))
-  })
-}
-
+//var wc = 
+//exports.wc = 
+//function () {
+//  return pull.asyncMap(function (file, cb) {
+//    var data = {lines: 0, chars:0, words: 0, file: file}
+//
+//    core.read(file)
+//    .pipe(split())
+//    .pipe(pull.reduce(function (total, line) {
+//      total.lines ++
+//      total.chars += line.length + 1 //+1 for new line
+//      //note, splitting, since it creates an array,
+//      //will not be the most optimal method.
+//      total.words +=
+//        line.split(/\s+/)
+//        .reduce(function (s, i) {
+//          return s + (i ? 1 : 0)
+//        }, 0)
+//
+//      return total
+//    }, data, cb))
+//  })
+//}
+//
 var star =
 exports.star = 
 function (match) {
@@ -61,24 +62,25 @@ var starStar =
 exports.starStar =
 function (match) {
   var seen = {}
-  return pull.map(function (dir) {
-    var first = true
-    return pull.depthFirst(path.resolve(dir), function (_dir) {
-      return core.readdir(_dir, match)
-      .pipe(pull.filter(function (e) {
-        if(seen[e]) return false
-        return seen[e] = true
-      }))
-    })
-
-  })
-  .pipe(pull.flatten())
-  .pipe(pull.filter())
+  return pull(
+    pull.map(function (dir) {
+      var first = true
+      return DepthFirst(path.resolve(dir), function (_dir) {
+        return pull(
+          core.readdir(_dir, match, true),
+          pull.filter(function (e) {
+            if(seen[e]) return false
+            return seen[e] = true
+          })
+        )
+      })
+    }),
+    pull.flatten(),
+    pull.filter()
+  )
 }
 
-var resolve = 
-exports.resolve = 
-function (rel) {
+var resolve = exports.resolve = function (rel) {
  return pull.map(function (dir) { //map to $dir/node_modules
     if(rel)
       return path.resolve(dir, rel)
@@ -86,17 +88,14 @@ function (rel) {
   })
 }
 
-var relative = 
-exports.relative =
-function (rel) {
+var relative = exports.relative = function (rel) {
   rel = rel || process.cwd()
   return pull.map(function (file) {
     return path.relative(rel, file)
   })
 }
 
-var absolute =
-exports.absolute =
+var absolute = exports.absolute =
 function () {
   return resolve()
 }
@@ -117,7 +116,10 @@ exports.readFile = function (parse) {
 }
 
 if(!module.parent) {
-  pull.values(['.'])
-  .pipe(starStar())
-  .pipe(pull.drain(console.log))
+  pull(
+    pull.values(['.']),
+    starStar(),
+    pull.drain(console.log)
+  )
 }
+
