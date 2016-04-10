@@ -1,7 +1,6 @@
 var pull = require('pull-stream')
 var fs   = require('fs')
 var path = require('path')
-var split = require('pull-split')
 var Read = require('pull-file')
 var Write = require('pull-write-file')
 
@@ -99,4 +98,5 @@ testStat(function (e) { return e.isFIFO() })
 var isSocket = 
 exports.isSocket =
 testStat(function (e) { return e.isSocket() })
+
 
