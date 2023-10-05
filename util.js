@@ -86,13 +86,3 @@ exports.readFile = function (parse) {
     })
   })
 }
-
-if(!module.parent) {
-  pull(
-    pull.values(['.']),
-    starStar(),
-    pull.drain(console.log)
-  )
-}
-
-
